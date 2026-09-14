@@ -7,6 +7,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 
 // @Entity avisa ao JPA/Hibernate que esta classe é uma entidade de banco de dados (o 'M' do MVC)
 @Entity
@@ -19,6 +22,16 @@ public class Artigo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     
+    // Coluna de id que referenciará a entidade de autor
+    @Column(name = "idAutor")
+    private long idAutor;
+
+    // Relacao de Muitos para Um (*...1)
+    // Transforma a coluna de id de Autor para referenciar uma classe inteira
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "idAutor", insertable = false, updatable = false)
+    private Autor autor;
+
     // Configurações da coluna: não pode ser nulo e tem tamanho máximo de 80 caracteres
     @Column(nullable = false, length = 80)
     private String titulo;
