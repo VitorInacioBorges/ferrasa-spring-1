@@ -1,2 +1,7 @@
 # ferrasa-spring-1
-spring work assignment for university evaluation purposes
+trabalho ferrasudo
+
+Integrantes:
+- Vitor Inacio Borges
+- Huehuller Glehyson
+- Pietro Strimber
