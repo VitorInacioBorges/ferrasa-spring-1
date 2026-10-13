@@ -1,7 +1,9 @@
 package dw.editora.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,12 +22,33 @@ public class AutorController {
         this.rep = rep;
     }
 
-    @GetMapping("/")
+    @GetMapping("/autores")
     public ResponseEntity<List<Autor>> getAllAutores(@RequestParam(required = false) String nome) {
         try {
+            List<Autor> la = new ArrayList<Autor>();
+
+            if (nome == null) 
+              rep.findAll().forEach(la::add);
+            else 
+                la = rep.findByNomeContainingIgnoreCase(nome);
+            
+            if (la.isEmpty())
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+            return ResponseEntity.ok(la);
 
         } catch (Exception e) {
-            
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     } 
+
+    @PostMapping("/autores")
+    public ResponseEntity<Autor> createAutor(@RequestBody Autor au) {
+        try {
+            Autor a = rep.save(new Autor(au.getNome(), au.getEmail()));
+            return new ResponseEntity<>(a, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
