@@ -1,6 +1,5 @@
 package dw.editora.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -14,26 +13,21 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import dw.editora.model.Autor;
-import dw.editora.repository.AutorRepository;
+import dw.editora.service.AutorService;
 
 @CrossOrigin(origins = "*")
 @RestController 
 public class AutorController {
-    private final AutorRepository rep;
+    private final AutorService service;
 
-    public AutorController(AutorRepository rep) {
-        this.rep = rep;
+    public AutorController(AutorService service) {
+        this.service = service;
     }
 
     @GetMapping("/autores")
     public ResponseEntity<List<Autor>> getAllAutores(@RequestParam(required = false) String nome) {
         try {
-            List<Autor> la = new ArrayList<Autor>();
-
-            if (nome == null) 
-              rep.findAll().forEach(la::add);
-            else 
-                la = rep.findByNomeContainingIgnoreCase(nome);
+            List<Autor> la = service.listar(nome);
             
             if (la.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -48,7 +42,7 @@ public class AutorController {
     @GetMapping("/autores/{id}")
     public ResponseEntity<Autor> getAutorById(@PathVariable("id") long id) {
         try {
-            Autor a = rep.findById(id).orElse(null);
+            Autor a = service.buscarPorId(id).orElse(null);
             if (a == null)
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             return new ResponseEntity<>(a, HttpStatus.OK);
@@ -60,7 +54,7 @@ public class AutorController {
     @PostMapping("/autores")
     public ResponseEntity<Autor> createAutor(@RequestBody Autor au) {
         try {
-            Autor a = rep.save(new Autor(au.getNome(), au.getBiografia(), au.getEmail()));
+            Autor a = service.criar(au);
             return new ResponseEntity<>(a, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
