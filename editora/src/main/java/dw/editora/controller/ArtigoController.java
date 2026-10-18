@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -28,6 +30,8 @@ import dw.editora.model.Autor;
 // Isso é um exemplo clássico de Inversão de Controle (IoC): o framework controla o ciclo de vida do Controller.
 @RestController 
 public class ArtigoController {
+
+    private static final Logger log = LoggerFactory.getLogger(ArtigoController.class);
 
     // Dependência da camada de dados (Repository)
     // Está marcada como 'final' para garantir que não será alterada após a injeção.
@@ -63,6 +67,7 @@ public class ArtigoController {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT); // Retorna 204 se estiver vazio
             return new ResponseEntity<>(la, HttpStatus.OK); // Retorna 200 e a lista
         } catch (Exception e) {
+            log.error("Erro ao listar artigos", e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -84,30 +89,23 @@ public class ArtigoController {
         else
             return new ResponseEntity<>(HttpStatus.NOT_FOUND); // 404 se não achar o id
     }
-/*--------------------------------------------
     /*
-    /*
-     * POST / : criar um artigo
-     *
-    @PostMapping("/")
-    public ResponseEntity<Artigo> createArtigo(@RequestBody Artigo ar) {
-        try {
-            // O objeto "ar" chega preenchido pelo Spring graças à conversão do JSON recebido no corpo da requisição
-            Artigo a = rep.save(new Artigo(ar.getTitulo(), ar.getResumo(), ar.isPublicado()));
-            return new ResponseEntity<>(a, HttpStatus.CREATED); // 201 Created
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+     * Título e resumo são obrigatórios e o título tem no máximo 80 caracteres (mesmas regras das colunas).
+     * Validar aqui evita que o erro do banco vire um 500.
+     */
+    private boolean dadosInvalidos(Artigo ar) {
+        return ar.getTitulo() == null || ar.getTitulo().isBlank() || ar.getTitulo().length() > 80
+                || ar.getResumo() == null || ar.getResumo().isBlank();
     }
-----------------------------------------------*/
+
     /*
     * POST /api/artigos : criar um artigo associado a um autor
     */
     @PostMapping("/api/artigos")
     public ResponseEntity<Artigo> createArtigo(@RequestBody Artigo ar) {
         try {
-            // Verifica se foi informado um ID positivo.
-            if (ar.getIdAutor() <= 0) {
+            // Verifica se foi informado um ID positivo e os campos obrigatórios.
+            if (ar.getIdAutor() <= 0 || dadosInvalidos(ar)) {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
 
@@ -136,6 +134,7 @@ public class ArtigoController {
             return new ResponseEntity<>(salvo, HttpStatus.CREATED);
 
         } catch (Exception e) {
+            log.error("Erro ao criar artigo", e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -146,6 +145,9 @@ public class ArtigoController {
     @PutMapping("/{id}")
     public ResponseEntity<Artigo> updateArtigo(@PathVariable("id") long id, @RequestBody Artigo a)
     {
+        if (dadosInvalidos(a))
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
         Optional<Artigo> data = rep.findById(id);
 
         if (data.isPresent())
@@ -170,6 +172,7 @@ public class ArtigoController {
             rep.deleteById(id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
+            log.error("Erro ao remover artigo {}", id, e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -184,6 +187,7 @@ public class ArtigoController {
             rep.deleteAll();
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
+            log.error("Erro ao remover todos os artigos", e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }        
     }
@@ -201,6 +205,7 @@ public class ArtigoController {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             return new ResponseEntity<>(la, HttpStatus.OK);
         } catch (Exception e) {
+            log.error("Erro ao listar artigos publicados", e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
