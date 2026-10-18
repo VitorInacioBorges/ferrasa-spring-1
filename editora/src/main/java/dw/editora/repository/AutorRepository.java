@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface AutorRepository extends JpaRepository<Autor, Long> {
     List<Autor> findByNomeContainingIgnoreCase(String nome);
     List<Autor> findByEmailContainingIgnoreCase(String email);
+    boolean existsByEmail(String email);
 }

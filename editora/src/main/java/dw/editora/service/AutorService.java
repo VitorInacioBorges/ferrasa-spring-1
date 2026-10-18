@@ -27,7 +27,18 @@ public class AutorService {
         return repository.findById(id);
     }
 
+    // Regras: nome e email obrigatórios, email em formato válido e único
     public Autor criar(Autor autor) {
-        return repository.save(new Autor(autor.getNome(), autor.getBiografia(), autor.getEmail()));
+        String nome = autor.getNome() == null ? "" : autor.getNome().trim();
+        String email = autor.getEmail() == null ? "" : autor.getEmail().trim().toLowerCase();
+
+        if (nome.isEmpty() || nome.length() > 80)
+            throw new IllegalArgumentException("Nome é obrigatório e deve ter até 80 caracteres");
+        if (email.isEmpty() || !email.contains("@"))
+            throw new IllegalArgumentException("Email é obrigatório e deve ser válido");
+        if (repository.existsByEmail(email))
+            throw new EmailJaCadastradoException(email);
+
+        return repository.save(new Autor(nome, autor.getBiografia(), email));
     }
 }

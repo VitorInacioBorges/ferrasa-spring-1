@@ -22,4 +22,7 @@ public interface ArtigoRepository extends JpaRepository<Artigo, Long> {
     List<Artigo> findByTituloContainingIgnoreCase(String titulo);
 
     List<Artigo> findByAutorId(Long idAutor);
+
+    // Gera "WHERE autor.id = ? AND publicado = ?"
+    List<Artigo> findByAutorIdAndPublicado(Long idAutor, boolean publicado);
 }
