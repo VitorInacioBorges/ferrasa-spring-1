@@ -14,15 +14,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dw.editora.model.Autor;
 import dw.editora.service.AutorService;
+import dw.editora.model.Artigo;
+import dw.editora.repository.ArtigoRepository;
 
 @CrossOrigin(origins = "*")
 @RestController 
 public class AutorController {
     private final AutorService service;
+    private final ArtigoRepository artigoRepository;
 
-    public AutorController(AutorService service) {
+    public AutorController(AutorService service, ArtigoRepository artigoRepository) {
         this.service = service;
-    }
+        this.artigoRepository = artigoRepository;
+}
 
     @GetMapping("/autores")
     public ResponseEntity<List<Autor>> getAllAutores(@RequestParam(required = false) String nome) {
@@ -56,6 +60,25 @@ public class AutorController {
         try {
             Autor a = service.criar(au);
             return new ResponseEntity<>(a, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/api/autores/{id}/artigos")
+    public ResponseEntity<List<Artigo>> getArtigosPorAutor(
+            @PathVariable("id") long id) {
+        try {
+            // Verifica se o autor existe.
+            if (service.buscarPorId(id).isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            // Consulta os artigos associados ao autor.
+            List<Artigo> artigos = artigoRepository.findByAutorId(id);
+
+            return ResponseEntity.ok(artigos);
+
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }

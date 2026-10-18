@@ -63,6 +63,9 @@ public class Artigo {
     public void setResumo(String resumo) { this.resumo = resumo; }
     public boolean isPublicado() { return this.publicado; }
     public void setPublicado(boolean publicado) { this.publicado = publicado; }
+    public long getIdAutor() { return this.idAutor; }
+    public void setIdAutor(long idAutor) { this.idAutor = idAutor;}
+    public void setAutor(Autor autor) { this.autor = autor; this.idAutor = autor.getId();}
 
     @Override
     public String toString() {
