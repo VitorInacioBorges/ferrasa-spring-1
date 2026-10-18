@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dw.editora.model.Artigo;
 import dw.editora.repository.ArtigoRepository;
+import dw.editora.service.AutorService;
 
 // Permite que o front-end (mesmo em domínios diferentes) consuma esta API.
 @CrossOrigin(origins = "*") 
@@ -30,6 +31,7 @@ public class ArtigoController {
     // Dependência da camada de dados (Repository)
     // Está marcada como 'final' para garantir que não será alterada após a injeção.
     private final ArtigoRepository rep;
+    private final AutorService autorService;
 
     /* 
      * INJEÇÃO DE DEPENDÊNCIA (DI):
@@ -37,8 +39,9 @@ public class ArtigoController {
      * o framework Spring "injeta" a dependência através do construtor. Isso diminui o acoplamento
      * e facilita a criação de testes (podemos injetar um "mock" no lugar do repositório real).
      */
-    public ArtigoController(ArtigoRepository rep) {
+    public ArtigoController( ArtigoRepository rep, AutorService autorService) {
         this.rep = rep;
+        this.autorService = autorService;
     }
 
     /*
