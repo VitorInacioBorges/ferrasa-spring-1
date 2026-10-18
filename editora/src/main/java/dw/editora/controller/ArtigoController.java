@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import dw.editora.model.Artigo;
 import dw.editora.repository.ArtigoRepository;
 import dw.editora.service.AutorService;
+import dw.editora.model.Autor;
 
 // Permite que o front-end (mesmo em domínios diferentes) consuma esta API.
 @CrossOrigin(origins = "*") 
@@ -83,16 +84,57 @@ public class ArtigoController {
         else
             return new ResponseEntity<>(HttpStatus.NOT_FOUND); // 404 se não achar o id
     }
-
+/*--------------------------------------------
+    /*
     /*
      * POST / : criar um artigo
-     */
+     *
     @PostMapping("/")
     public ResponseEntity<Artigo> createArtigo(@RequestBody Artigo ar) {
         try {
             // O objeto "ar" chega preenchido pelo Spring graças à conversão do JSON recebido no corpo da requisição
             Artigo a = rep.save(new Artigo(ar.getTitulo(), ar.getResumo(), ar.isPublicado()));
             return new ResponseEntity<>(a, HttpStatus.CREATED); // 201 Created
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+----------------------------------------------*/
+    /*
+    * POST /api/artigos : criar um artigo associado a um autor
+    */
+    @PostMapping("/api/artigos")
+    public ResponseEntity<Artigo> createArtigo(@RequestBody Artigo ar) {
+        try {
+            // Verifica se foi informado um ID positivo.
+            if (ar.getIdAutor() <= 0) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
+            // Procura o autor no banco pelo ID recebido.
+            Autor autor = autorService
+                    .buscarPorId(ar.getIdAutor())
+                    .orElse(null);
+
+            if (autor == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            // Cria o artigo com os dados recebidos.
+            Artigo artigo = new Artigo(
+                    ar.getTitulo(),
+                    ar.getResumo(),
+                    ar.isPublicado()
+            );
+
+            // Associa o autor e preenche o idAutor.
+            artigo.setAutor(autor);
+
+            // Salva o artigo no banco.
+            Artigo salvo = rep.save(artigo);
+
+            return new ResponseEntity<>(salvo, HttpStatus.CREATED);
+
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
